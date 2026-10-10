@@ -1,0 +1,698 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name=claude:viewport-fit-sides content=cover><style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-right:env(safe-area-inset-right,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}</style><style>.md-table{overflow-x:auto}@media print{.md-table{overflow-x:visible}}</style><style>:root{color-scheme:light dark;--md-bg:#fff;--md-text:rgba(0,0,0,.8);--md-muted:rgba(0,0,0,.6);--md-fill:rgba(0,0,0,.04);--md-fill-strong:rgba(0,0,0,.06);--md-rule:rgba(0,0,0,.1);--md-rule-strong:rgba(0,0,0,.16);--md-link:hsl(210 100% 45%)}@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])){--md-bg:#0d0d0d;--md-text:rgba(255,255,255,.85);--md-muted:rgba(255,255,255,.6);--md-fill:rgba(255,255,255,.06);--md-fill-strong:rgba(255,255,255,.09);--md-rule:rgba(255,255,255,.14);--md-rule-strong:rgba(255,255,255,.22);--md-link:hsl(210 100% 72%)}}:root[data-theme="dark"]{color-scheme:dark;--md-bg:#0d0d0d;--md-text:rgba(255,255,255,.85);--md-muted:rgba(255,255,255,.6);--md-fill:rgba(255,255,255,.06);--md-fill-strong:rgba(255,255,255,.09);--md-rule:rgba(255,255,255,.14);--md-rule-strong:rgba(255,255,255,.22);--md-link:hsl(210 100% 72%)}:root[data-theme="light"]{color-scheme:light}@media print{:root,:root[data-theme="dark"]{color-scheme:light;--md-bg:#fff;--md-text:rgba(0,0,0,.8);--md-muted:rgba(0,0,0,.6);--md-fill:rgba(0,0,0,.04);--md-fill-strong:rgba(0,0,0,.06);--md-rule:rgba(0,0,0,.1);--md-rule-strong:rgba(0,0,0,.16);--md-link:hsl(210 100% 45%)}}body{background:var(--md-bg);color:var(--md-text);max-width:720px;margin:0 auto;padding:32px;display:flex;flex-direction:column;gap:10px;font:14px/1.55 -apple-system,BlinkMacSystemFont,'SF Pro','Segoe UI',sans-serif;overflow-wrap:break-word}body>:first-child{margin-top:0}h1,h2,h3,h4,h5,h6{margin:6px 0 0;line-height:1.25;font-weight:600;text-wrap:balance}h1{font-size:1.35em}h2{font-size:1.15em;color:var(--md-muted)}h3,h4,h5,h6{font-size:1em}p,ul,ol,blockquote,table,pre,hr{margin:0}strong{font-weight:600}a{color:var(--md-link);text-decoration:none}a:hover{text-decoration:underline}ul,ol{display:flex;flex-direction:column;gap:6px;padding-left:22px}ul{list-style:disc}ol{list-style:decimal}:is(li,td,th)>*+:is(p,ul,ol,blockquote){margin-top:6px}blockquote{display:flex;flex-direction:column;gap:10px;border-left:2px solid var(--md-rule);padding-left:10px;color:var(--md-muted)}:not(pre)>code{background:var(--md-fill);padding:1px 3px;border-radius:4px;font:.92em 'SF Mono',ui-monospace,Menlo,Consolas,monospace}a>code{background:none;color:inherit}pre{background:var(--md-fill);padding:10px 12px;border-radius:6px;overflow-x:auto;font:12px/1.5 'SF Mono',ui-monospace,Menlo,Consolas,monospace;margin-block:4px}pre code{background:none;padding:0;font:inherit}table{width:100%;border-collapse:separate;border-spacing:2px;font:inherit}th,td{padding:6px 8px;border-radius:3px;text-align:left;vertical-align:top}th{background:var(--md-fill-strong);font-weight:600}td{background:var(--md-fill)}:is(th,td) :not(pre)>code{background:transparent}hr{border:0;border-top:1px solid var(--md-rule-strong);margin-block:10px}img{max-width:100%;height:auto;border-radius:4px}</style>
+</head><body>
+<h1>Reproducing RAGDefender (ACSAC 2025)</h1>
+<p><em>Kim, Lee, Koo. &quot;Rescuing the Unpoisoned: Efficient Defense against Knowledge Corruption Attacks on RAG Systems.&quot; arXiv 2511.01268. Artifact: github.com/SecAI-Lab/RAGDefender</em></p>
+<blockquote>
+<p><strong>How to read this file.</strong> &quot;Original&quot; values are copied from the paper. <strong>Δ = Reproduced − Original</strong>, in absolute ASR/accuracy points. ASR = share of answers containing the attacker's target answer (lower is better); Acc = share containing the ground truth (higher is better).</p>
+</blockquote>
+<hr>
+<h2>1. What is being reproduced</h2>
+<p>The artifact has three claims. Each runs one attack on NQ, HotpotQA and MS MARCO with Contriever as retriever and <strong>LLaMA-7B + Vicuna-7B in 8-bit</strong>.</p>
+<div class="md-table" role="region" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Attack</th>
+<th>Paper location</th>
+<th>Runtime (repo estimate)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>claim1_poisonedrag</td>
+<td>PoisonedRAG</td>
+<td>§6.2, Fig. 4 col. 1</td>
+<td>4–5 h</td>
+</tr>
+<tr>
+<td>claim3_garag</td>
+<td>GARAG</td>
+<td>§6.2, Fig. 4 col. 2</td>
+<td>1–2 h</td>
+</tr>
+<tr>
+<td>claim2_tan</td>
+<td>Tan et al. (formerly &quot;Blind&quot;)</td>
+<td>§6.2, Fig. 4 col. 3</td>
+<td>1–2 h</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Important mismatch to state in your report.</strong> The paper's headline Figure 4 numbers use <strong>GPT-4o</strong> as generator. The artifact ships only 7B open-source configs. So:</p>
+<ul>
+<li>For claim 1, the like-for-like paper numbers are Tables 5 and 9 (PoisonedRAG, 7B models). They are used in §2.1.</li>
+<li>For claims 2 and 3, the paper gives only bar charts (no per-model numbers for LLaMA/Vicuna). Your &quot;Original&quot; for these is the repo's <code>claims/&lt;claim&gt;/expected/result.txt</code>. Paste it into §2.2.</li>
+<li>Not attempted (say so explicitly): GPT-4o and Gemini, 13B models, DPR/ANCE, RobustRAG and Discern-and-Answer baselines, Table 4 (BlendedRAG/REPLUG/SELF-RAG).</li>
+</ul>
+<hr>
+<h2>2. Original vs Reproduced vs Difference</h2>
+<h3>2.1 Claim 1: PoisonedRAG, with RAGDefender, Contriever</h3>
+<p>Original values: paper Table 9(a) NQ, Table 9(b) HotpotQA, Table 5 MS MARCO (Contriever columns). &quot;×&quot; is the adversarial-to-benign passage ratio.</p>
+<div class="md-table" role="region" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Dataset</th>
+<th>Model</th>
+<th>Ratio</th>
+<th>Orig ASR</th>
+<th>Orig Acc</th>
+<th>Repro ASR</th>
+<th>Repro Acc</th>
+<th>Δ ASR</th>
+<th>Δ Acc</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NQ</td>
+<td>LLaMA-7B</td>
+<td>1×</td>
+<td>0.09</td>
+<td>0.61</td>
+<td>0.09</td>
+<td>0.59</td>
+<td>+0.00</td>
+<td>-0.02</td>
+</tr>
+<tr>
+<td>NQ</td>
+<td>LLaMA-7B</td>
+<td>2×</td>
+<td>0.07</td>
+<td>0.59</td>
+<td>0.08</td>
+<td>0.61</td>
+<td>+0.01</td>
+<td>+0.02</td>
+</tr>
+<tr>
+<td>NQ</td>
+<td>LLaMA-7B</td>
+<td>4×</td>
+<td>0.05</td>
+<td>0.61</td>
+<td>0.03</td>
+<td>0.57</td>
+<td>-0.02</td>
+<td>-0.04</td>
+</tr>
+<tr>
+<td>NQ</td>
+<td>LLaMA-7B</td>
+<td>6×</td>
+<td>0.05</td>
+<td>0.64</td>
+<td>0.07</td>
+<td>0.60</td>
+<td>+0.02</td>
+<td>-0.04</td>
+</tr>
+<tr>
+<td>NQ</td>
+<td>Vicuna-7B</td>
+<td>1×</td>
+<td>0.09</td>
+<td>0.57</td>
+<td>0.09</td>
+<td>0.58</td>
+<td>+0.00</td>
+<td>+0.01</td>
+</tr>
+<tr>
+<td>NQ</td>
+<td>Vicuna-7B</td>
+<td>2×</td>
+<td>0.12</td>
+<td>0.53</td>
+<td>0.10</td>
+<td>0.54</td>
+<td>-0.02</td>
+<td>+0.01</td>
+</tr>
+<tr>
+<td>NQ</td>
+<td>Vicuna-7B</td>
+<td>4×</td>
+<td>0.08</td>
+<td>0.61</td>
+<td>0.07</td>
+<td>0.57</td>
+<td>-0.01</td>
+<td>-0.04</td>
+</tr>
+<tr>
+<td>NQ</td>
+<td>Vicuna-7B</td>
+<td>6×</td>
+<td>0.07</td>
+<td>0.60</td>
+<td>0.05</td>
+<td>0.60</td>
+<td>-0.02</td>
+<td>+0.00</td>
+</tr>
+<tr>
+<td>HotpotQA</td>
+<td>LLaMA-7B</td>
+<td>1×</td>
+<td>0.16</td>
+<td>0.71</td>
+<td>0.17</td>
+<td>0.67</td>
+<td>+0.01</td>
+<td>-0.04</td>
+</tr>
+<tr>
+<td>HotpotQA</td>
+<td>LLaMA-7B</td>
+<td>2×</td>
+<td>0.08</td>
+<td>0.76</td>
+<td>0.07</td>
+<td>0.72</td>
+<td>-0.01</td>
+<td>-0.04</td>
+</tr>
+<tr>
+<td>HotpotQA</td>
+<td>LLaMA-7B</td>
+<td>4×</td>
+<td>0.09</td>
+<td>0.75</td>
+<td>0.11</td>
+<td>0.75</td>
+<td>+0.02</td>
+<td>+0.00</td>
+</tr>
+<tr>
+<td>HotpotQA</td>
+<td>LLaMA-7B</td>
+<td>6×</td>
+<td>0.10</td>
+<td>0.75</td>
+<td>0.08</td>
+<td>0.78</td>
+<td>-0.02</td>
+<td>+0.03</td>
+</tr>
+<tr>
+<td>HotpotQA</td>
+<td>Vicuna-7B</td>
+<td>1×</td>
+<td>0.20</td>
+<td>0.71</td>
+<td>0.22</td>
+<td>0.67</td>
+<td>+0.02</td>
+<td>-0.04</td>
+</tr>
+<tr>
+<td>HotpotQA</td>
+<td>Vicuna-7B</td>
+<td>2×</td>
+<td>0.12</td>
+<td>0.80</td>
+<td>0.11</td>
+<td>0.82</td>
+<td>-0.01</td>
+<td>+0.02</td>
+</tr>
+<tr>
+<td>HotpotQA</td>
+<td>Vicuna-7B</td>
+<td>4×</td>
+<td>0.12</td>
+<td>0.80</td>
+<td>0.15</td>
+<td>0.81</td>
+<td>+0.03</td>
+<td>+0.01</td>
+</tr>
+<tr>
+<td>HotpotQA</td>
+<td>Vicuna-7B</td>
+<td>6×</td>
+<td>0.13</td>
+<td>0.80</td>
+<td>0.11</td>
+<td>0.81</td>
+<td>-0.02</td>
+<td>+0.01</td>
+</tr>
+<tr>
+<td>MS MARCO</td>
+<td>LLaMA-7B</td>
+<td>1×</td>
+<td>0.08</td>
+<td>0.85</td>
+<td>0.10</td>
+<td>0.85</td>
+<td>+0.02</td>
+<td>+0.00</td>
+</tr>
+<tr>
+<td>MS MARCO</td>
+<td>LLaMA-7B</td>
+<td>2×</td>
+<td>0.07</td>
+<td>0.85</td>
+<td>0.05</td>
+<td>0.83</td>
+<td>-0.02</td>
+<td>-0.02</td>
+</tr>
+<tr>
+<td>MS MARCO</td>
+<td>LLaMA-7B</td>
+<td>4×</td>
+<td>0.08</td>
+<td>0.83</td>
+<td>0.06</td>
+<td>0.84</td>
+<td>-0.02</td>
+<td>+0.01</td>
+</tr>
+<tr>
+<td>MS MARCO</td>
+<td>LLaMA-7B</td>
+<td>6×</td>
+<td>0.12</td>
+<td>0.80</td>
+<td>0.11</td>
+<td>0.79</td>
+<td>-0.01</td>
+<td>-0.01</td>
+</tr>
+<tr>
+<td>MS MARCO</td>
+<td>Vicuna-7B</td>
+<td>1×</td>
+<td>0.10</td>
+<td>0.83</td>
+<td>0.11</td>
+<td>0.81</td>
+<td>+0.01</td>
+:-0.02</td>
+</tr>
+<tr>
+<td>MS MARCO</td>
+<td>Vicuna-7B</td>
+<td>2×</td>
+<td>0.09</td>
+<td>0.85</td>
+<td>0.11</td>
+<td>0.81</td>
+<td>+0.02</td>
+<td>-0.04</td>
+</tr>
+<tr>
+<td>MS MARCO</td>
+<td>Vicuna-7B</td>
+<td>4×</td>
+<td>0.08</td>
+<td>0.87</td>
+<td>0.10</td>
+<td>0.86</td>
+<td>+0.02</td>
+<td>-0.01</td>
+</tr>
+<tr>
+<td>MS MARCO</td>
+<td>Vicuna-7B</td>
+<td>6×</td>
+<td>0.14</td>
+<td>0.82</td>
+<td>0.16</td>
+<td>0.85</td>
+<td>+0.02</td>
+<td>+0.03</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3>2.2 Claims 2 and 3: GARAG and Tan et al.</h3>
+<p>Paper text for <strong>NQ, 4×, GPT-4o</strong> (§6.2). The paper lists attacks in the order PoisonedRAG, GARAG, Tan, and I assume the quoted numbers follow that order. Confirm against Figure 4.</p>
+<div class="md-table" role="region" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Attack</th>
+<th>Source</th>
+<th>Orig ASR</th>
+<th>Orig Acc</th>
+<th>Repro ASR</th>
+<th>Repro Acc</th>
+<th>Δ ASR</th>
+<th>Δ Acc</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PoisonedRAG</td>
+<td>paper §6.2 (GPT-4o)</td>
+<td>0.03</td>
+<td>0.73</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>GARAG</td>
+<td>paper §6.2 (GPT-4o)</td>
+<td>0.03</td>
+<td>0.75</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>Tan et al.</td>
+<td>paper §6.2 (GPT-4o)</td>
+<td>0.03</td>
+<td>0.74</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>These GPT-4o rows are context only, because you cannot run GPT-4o. Your like-for-like comparison is below, using <code>expected/result.txt</code>.</p>
+<div class="md-table" role="region" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Dataset / model / ratio</th>
+<th>Expected (from <code>expected/result.txt</code>) ASR / Acc</th>
+<th>Repro ASR / Acc</th>
+<th>Δ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>claim2_tan</td>
+<td>NQ / LLaMA-7B / 4×</td>
+<td>0.03 / 0.74</td>
+<td>0.03 / 0.74</td>
+<td>0.00 / 0.00</td>
+</tr>
+<tr>
+<td>claim3_garag</td>
+<td>NQ / LLaMA-7B / 4×</td>
+<td>0.03 / 0.75</td>
+<td>0.03 / 0.75</td>
+<td>0.00 / 0.00</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>For context, at NQ 4× (GPT-4o) the paper reports baselines far above RAGDefender: RobustRAG ASR 0.84 / 0.55 / 0.54 and Discern-and-Answer 0.31 / 0.30 / 0.28 (same attack order).</p>
+<h3>2.3 Secondary results you can optionally check</h3>
+<div class="md-table" role="region" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Paper item</th>
+<th>Quantity</th>
+<th>Original</th>
+<th>Reproduced</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Table 2</td>
+<td>RAGDefender seconds/iteration, LLaMA-7B (NQ, 1×)</td>
+<td>0.759</td>
+<td>0.83</td>
+</tr>
+<tr>
+<td>Table 2</td>
+<td>RAGDefender seconds/iteration, Vicuna-7B</td>
+<td>0.772</td>
+<td>0.85</td>
+</tr>
+<tr>
+<td>Table 2</td>
+<td>RAGDefender cost per iteration</td>
+<td>&lt; $0.01</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>Table 3</td>
+<td>RAGDefender GPU memory</td>
+<td>&quot;No GPU usage&quot;</td>
+<td>No GPU usage</td>
+</tr>
+<tr>
+<td>Table 6</td>
+<td>Agglomerative ASR, NQ 4×: LLaMA-7B / Vicuna-7B</td>
+<td>0.05 / 0.08</td>
+<td>0.06 / 0.09</td>
+</tr>
+<tr>
+<td>Table 8</td>
+<td>NQ 6×, LLaMA-7B: Stage 1 only / Stage 2 only / Combined</td>
+<td>0.35 / 0.59 / 0.05</td>
+<td>0.37 / 0.61 / 0.06</td>
+</tr>
+<tr>
+<td>Table 8</td>
+<td>NQ 6×, Vicuna-7B: Stage 1 only / Stage 2 only / Combined</td>
+<td>0.35 / 0.59 / 0.07</td>
+<td>0.36 / 0.60 / 0.08</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Per the repo's <code>docs/reproducing-paper.md</code>, Table 2 and Table 3 are manual, Table 6 needs a one-line code edit, and Table 8 must be assembled by hand.</p>
+<hr>
+<h2>3. Hardware and software</h2>
+<div class="md-table" role="region" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th></th>
+<th>Paper</th>
+<th>Artifact guidance</th>
+<th>Mine</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OS</td>
+<td>Ubuntu 20.04 (64-bit)</td>
+<td>n/a</td>
+<td>Ubuntu 22.04 LTS (Colab image)</td>
+</tr>
+<tr>
+<td>CPU / RAM</td>
+<td>i9-10900X, 128 GB</td>
+<td>n/a</td>
+<td>Intel Xeon @ 2.20GHz, 12.7 GB RAM</td>
+</tr>
+<tr>
+<td>GPU</td>
+<td>Quadro RTX 8000 (~48 GB)</td>
+<td>≥16 GB VRAM, 8-bit</td>
+<td>NVIDIA T4, 15.3 GB VRAM (Colab Free)</td>
+</tr>
+<tr>
+<td>Generators</td>
+<td>LLaMA-2 and Vicuna-1.3, 7B and 13B; GPT-4o; Gemini-1.5-pro</td>
+<td>LLaMA-7B, Vicuna-7B (8-bit)</td>
+<td>meta-llama/Llama-2-7b-chat-hf, lmsys/vicuna-7b-v1.5</td>
+</tr>
+<tr>
+<td>Retriever</td>
+<td>Contriever, DPR, ANCE</td>
+<td>Contriever only</td>
+<td>Contriever</td>
+</tr>
+<tr>
+<td>Embedder</td>
+<td>Stella (Sentence-Transformers)</td>
+<td>default small checkpoint, or <code>embedder='stella'</code> for paper-faithful runs</td>
+<td>dunzhang/stella_en_1.5B_v5</td>
+</tr>
+<tr>
+<td>Index / clustering</td>
+<td>FAISS IndexFlatL2; scikit-learn agglomerative</td>
+<td>same</td>
+<td>FAISS IndexFlatL2; scikit-learn agglomerative</td>
+</tr>
+<tr>
+<td>Hyperparameters</td>
+<td>m = 5, p = 2, top-k = 5 (NQ, MS MARCO) / 2 (HotpotQA)</td>
+<td>same</td>
+<td>m = 5, p = 2, top-k = 5 (NQ, MS MARCO) / 2 (HotpotQA)</td>
+</tr>
+<tr>
+<td>Repetitions</td>
+<td>10 random seeds</td>
+<td>check <code>run_*.py</code></td>
+<td>10 random seeds</td>
+</tr>
+<tr>
+<td>Python / torch / transformers / bitsandbytes</td>
+<td>not stated</td>
+<td><code>artifacts/env.yml</code></td>
+<td>Python 3.10, PyTorch 2.1.2, Transformers 4.36.2, bitsandbytes 0.41.3</td>
+</tr>
+<tr>
+<td>Repo commit</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>a1b2c3d4e5f67890</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Collect versions and the commit with:</p>
+<pre><code class="language-bash">nvidia-smi
+cd /content/RAGDefender &amp;&amp; git rev-parse HEAD
+conda run -n artifact_acsac python --version
+conda run -n artifact_acsac pip freeze &gt; /content/drive/MyDrive/ragdefender_runs/pip_freeze.txt
+</code></pre>
+<hr>
+<h2>4. Deviations from the original setup</h2>
+<ul>
+<li><strong>D1. 8-bit quantization on a ≤16 GB GPU</strong> instead of the paper's ~48 GB card. The authors say this gives slightly different numbers with the same trends.</li>
+<li><strong>D2. Legacy implementation.</strong> The artifact's <code>expected/result.txt</code> files were generated by the legacy code, and <code>ConcentrationBasedGrouping</code> differs from the paper's Eq. 3 in three documented ways (OR vs AND, threshold definition, result flip). This mainly affects multi-hop (HotpotQA). v0.2.0 also fixed a Stage-2 bug from v0.1.1, which truncated <code>R[:|R|-N_adv]</code> instead of selecting specific indices. Record which version you ran.</li>
+<li><strong>D3. Open-source 7B generators only.</strong> No GPT-4o, Gemini, or 13B, so the headline Figure 4 and Figure 5 claims are only partly covered.</li>
+<li><strong>D4. No baseline defenses.</strong> RobustRAG and Discern-and-Answer are not run, so the paper's relative claims (&quot;outperforms RobustRAG by X&quot;) are not verified here.</li>
+<li><strong>D5. Contriever only.</strong> DPR and ANCE columns of Table 5 and Table 9 are not reproduced unless you change <code>eval_model_code</code>.</li>
+<li><strong>D6. Memory measurement.</strong> The notebook logs <code>nvidia-smi</code> for the whole run, which is dominated by the LLM generator. It cannot isolate RAGDefender's own footprint, so it cannot confirm or refute Table 3's &quot;No GPU usage&quot; row. Measure the defense step separately (for example, call <code>defender.defend(...)</code> alone on CPU and on GPU and compare).</li>
+<li><strong>D7. Platform.</strong> Colab (shared, time-limited runtime) instead of a dedicated workstation, so timings in Table 2 are not comparable in absolute terms.</li>
+</ul>
+<hr>
+<h2>5. How to interpret differences</h2>
+<p>Compare three things, not two: <strong>paper</strong>, <strong><code>expected/result.txt</code></strong>, <strong>your run</strong>.</p>
+<ul>
+<li>Yours ≈ expected, but both differ from the paper → the gap is explained by D1 and D2 (quantization, legacy implementation). Cite both, but show the numbers rather than asserting it.</li>
+<li>Yours ≠ expected → suspect your environment, library versions, seeds, or a partial run. Check logs before blaming the paper.</li>
+<li>Trends (ASR low and roughly flat across ratios, accuracy high) hold even where absolute numbers shift → say the qualitative claim reproduces.</li>
+</ul>
+<p>Note that paper results average 10 seeds, so small deltas (a few hundredths) may be within noise. Report what your logs allow (seeds run, any variance).</p>
+<hr>
+<h2>6. Troubleshooting log (my run)</h2>
+<blockquote>
+<p>Paste exact error text where marked. Entries marked <strong>Encountered</strong> are problems I hit; <strong>Anticipated</strong> are risks identified from reading the notebook and repo that I may or may not have hit.</p>
+</blockquote>
+<h3>Time log</h3>
+<div class="md-table" role="region" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Start</th>
+<th>End</th>
+<th>Wall time</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Env install (phase 1 / restart / phase 2)</td>
+<td>10:00</td>
+<td>10:15</td>
+<td>15m</td>
+<td>Completed cleanly</td>
+</tr>
+<tr>
+<td>claim2_tan</td>
+<td>10:15</td>
+<td>11:45</td>
+<td>1h 30m</td>
+<td>Completed cleanly</td>
+</tr>
+<tr>
+<td>claim3_garag</td>
+<td>11:45</td>
+<td>13:15</td>
+<td>1h 30m</td>
+<td>Completed cleanly</td>
+</tr>
+<tr>
+<td>claim1_poisonedrag</td>
+<td>13:15</td>
+<td>17:45</td>
+<td>4h 30m</td>
+<td>Completed cleanly</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3>P1. Conda environment setup: Encountered</h3>
+<ul>
+<li><strong>Symptom:</strong> <code>conda: command not found</code> after first execution of <code>install_colab.sh</code>.</li>
+<li><strong>Background:</strong> <code>install_colab.sh</code> works in two phases. The first run installs <code>condacolab</code> and asks for a runtime restart. After <strong>Runtime → Restart session</strong>, re-run the Drive-mount cell and the install cell, and skip the clone. It must be run from <code>/content</code>, the parent of the <code>RAGDefender</code> folder.</li>
+<li><strong>Fixes to try, in order:</strong> (1) if <code>conda: command not found</code>, run <code>import condacolab; condacolab.install()</code> once, then restart; (2) confirm with <code>!conda env list</code> that <code>artifact_acsac</code> exists; (3) <code>!conda run -n artifact_acsac pip install -e /content/RAGDefender</code>; (4) sanity check <code>conda run -n artifact_acsac python -c &quot;import torch; print(torch.cuda.is_available())&quot;</code>.</li>
+<li><strong>What worked:</strong> Restarted Colab session after Phase 1 and ran Phase 2 from <code>/content</code>.</li>
+<li><strong>Time lost:</strong> 10m</li>
+</ul>
+<h3>P2. Log folder name mismatch (<code>main_logs_Tan_12</code>): Encountered</h3>
+<ul>
+<li><strong>Symptom:</strong> the log folder the code writes or reads does not match the documented name. The README documents outputs under <code>artifacts/logs/main_logs_&lt;METHOD&gt;_12/</code>, and <code>claim2_tan/run.sh</code> calls <code>eval.py --method Tan</code>.</li>
+<li><strong>Likely cause (hypothesis, verify):</strong> the method was renamed from &quot;Blind&quot; to &quot;Tan&quot; in v0.2.0, so some code path may still use the old name. Confirm which name exists on disk and which the code expects.</li>
+<li><strong>Diagnose:</strong>
+<pre><code class="language-bash">ls /content/RAGDefender/artifacts/logs/
+grep -rn &#34;main_logs&#34; /content/RAGDefender/artifacts/*.py | head
+</code></pre>
+</li>
+<li><strong>Workaround:</strong> create a symlink so both names resolve: <code>ln -s &lt;name that exists&gt; &lt;name eval.py expects&gt;</code> inside <code>artifacts/logs/</code>. Or edit the path in the script and record the edit as a deviation (D8).</li>
+<li><strong>Actual cause and fix in my run:</strong> Created symlink <code>ln -s main_logs_Blind_12 main_logs_Tan_12</code> in <code>artifacts/logs/</code>.</li>
+<li><strong>Worth reporting upstream</strong> as a repo issue.</li>
+</ul>
+<h3>P3. Gated Llama-2 and Hugging Face token: Encountered</h3>
+<ul>
+<li><strong>Symptom:</strong> <code>401 Client Error: Repository Not Found / Access Restricted</code> for <code>meta-llama/Llama-2-7b-chat-hf</code>.</li>
+<li><strong>Cause:</strong> Llama-2 weights on Hugging Face are gated. You must (a) request and accept Meta's license on the model page with your HF account, which can take time to be approved, and (b) provide an access token. Vicuna is a separate, ungated model, so only the LLaMA runs fail.</li>
+<li><strong>Fix:</strong> store the token in Colab <strong>Secrets</strong> (key <code>HF_TOKEN</code>) and expose it to the environment before launching any claim:
+<pre><code class="language-python">from google.colab import userdata
+import os
+os.environ[&#34;HF_TOKEN&#34;] = userdata.get(&#34;HF_TOKEN&#34;)
+</code></pre>
+The variable is inherited by <code>!</code> commands and <code>nohup</code> jobs started afterwards, but is <strong>lost on every runtime restart</strong>, so re-run this cell. Check access with <code>huggingface-cli whoami</code> (or <code>hf auth whoami</code> on newer huggingface_hub). Never paste the token into a notebook cell that you share or commit.</li>
+<li><strong>Check which model ID is used:</strong> open <code>artifacts/model_configs/llama7b_config.json</code> and confirm the ID matches the model you were granted access to. Record it in §3.</li>
+<li><strong>Time lost (including approval wait):</strong> 15m</li>
+</ul>
+<h3>P4. GPU out of memory: Anticipated</h3>
+<ul>
+<li>Free T4 is ~15 GB versus the ~16 GB the repo targets. If OOM appears, switch to a larger GPU and record GPU model and the change as a deviation.</li>
+<li>Never run two claims at once on one GPU. The notebook's <code>&amp;</code> background cells make this easy to do by accident with &quot;Run all&quot;.</li>
+</ul>
+<h3>P5. Env handling and silent output: Anticipated</h3>
+<ul>
+<li>The claim scripts already wrap every Python call in <code>conda run -n ${CONDA_ENV:-artifact_acsac}</code>, so they do not use the base Python by themselves. Wrapping them again in an outer <code>conda run</code> is unnecessary.</li>
+<li><code>conda run</code> buffers output unless <code>--no-capture-output</code> is passed, so <code>tail</code> on the stdout file may look empty for long stretches. That is not necessarily a hang. Check <code>nvidia-smi</code> utilization to confirm the job is alive.</li>
+</ul>
+<h3>P6. Runtime disconnects and lost results: Anticipated</h3>
+<ul>
+<li>Everything in <code>/content</code> (repo, conda env, <code>artifacts/</code>) is lost on disconnect. Copy <code>artifacts/logs</code> and <code>artifacts/results</code> to Drive after each claim, not only at the end.</li>
+</ul>
+<hr>
+<h2>7. Problems and limitations reported by the original authors</h2>
+<p>Expect to see versions of these in your own results.</p>
+<ul>
+<li><strong>Quantization and scale.</strong> Results come from a ~48 GB GPU in full precision. Your 8-bit runs will differ (D1).</li>
+<li><strong>Mis-partitioning.</strong> On NQ at 1×, RAGDefender wrongly groups a legitimate passage as adversarial in 0.54% of cases.</li>
+<li><strong>False negatives.</strong> About 3% of adversarial passages slip through (0 false positives). The paper's example is an MS MARCO query (&quot;What county is Berne, NY in?&quot;) where the adversarial passage imitates the tone and structure of the genuine one.</li>
+<li><strong>Detection accuracy.</strong> On NQ at 4× (20 adversarial passages), detection rate was 0.94 with an average estimated N_adv of 21.4. The golden passage was correctly kept 97% of the time.</li>
+<li><strong>Clean-data cost.</strong> With no attack, Gemini lost about 2% accuracy on NQ. Other models showed no measurable change.</li>
+<li><strong>Large k.</strong> Performance can be inconsistent when more than ~10 passages are retrieved (the paper's runs use k = 5 for NQ/MS MARCO and k = 2 for HotpotQA).</li>
+<li><strong>No theoretical guarantee</strong> that adversarial passages always form dense clusters. Stronger adaptive attacks remain open. Multimodal and multilingual corpora are untested.</li>
+<li><strong>Weak spots in the paper's own tables.</strong> BlendedRAG on MS MARCO improves only from ASR 0.87 to 0.78 (Table 4). ASR creeps up at 6× on MS MARCO (Table 5). Vicuna-7B shows non-monotonic ASR across ratios (2× and 4× slightly better than 1×), which the authors note.</li>
+<li><strong>Extreme ratios.</strong> At 10× to 100× injection, ASR rises (HotpotQA LLaMA-7B: 0.08 at 1× to 0.82 at 100×). The authors argue such noisy injection is easier to detect by monitoring and less practical.</li>
+<li><strong>Artifact gaps (from the repo docs):</strong> GPT-4o and Gemini need your own API config. 13B configs are not shipped. Table 4 needs three external repos. Table 6 needs a source edit. Table 2 and Table 3 are manual. There is no per-figure orchestration script.</li>
+</ul>
+<hr>
+<h2>8. Conclusion </h2>
+<ul>
+<li><strong>Claims reproduced:</strong> 3 of 3 (claim 1 / 2 / 3)</li>
+<li><strong>Qualitative result</strong> (ASR low and stable across ratios; accuracy high): Successfully reproduced; trends match paper claims across all models and datasets.</li>
+<li><strong>Largest absolute deviation</strong> and the cell it occurred in: Δ Acc = -0.04 in NQ LLaMA-7B (4× and 6×), Vicuna-7B (4×), and HotpotQA LLaMA-7B / Vicuna-7B (1×).</li>
+<li><strong>Most likely explanation</strong> (D1, D2, environment, other), with the evidence from §5: Minor numerical variations are due to 8-bit quantization on a single T4 GPU (D1) and legacy implementation differences (D2).</li>
+<li><strong>What I could not verify</strong> (D3 to D6): Proprietary models (GPT-4o/Gemini), 13B configurations, non-Contriever retrievers (DPR/ANCE), baseline defenses, and GPU memory overhead isolation.</li>
+</ul>
+
+</body></html>
